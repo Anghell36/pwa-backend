@@ -2,6 +2,7 @@ import express from "express";
 import Stripe from "stripe";
 import cors from "cors";
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const app = express();
 
@@ -30,6 +31,58 @@ const petSchema = new mongoose.Schema({
 });
 
 const Pet = mongoose.model("Pet", petSchema);
+
+// ==========================================
+// ESTRUCTURA DE USUARIOS (MODELO)
+// ==========================================
+const userSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
+const User = mongoose.model("User", userSchema);
+
+// ==========================================
+// RUTAS DE AUTENTICACIÓN (LOGIN / REGISTRO)
+// ==========================================
+
+// Registrar un nuevo usuario
+app.post("/register", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Verificar si ya existe
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ error: "El correo ya está registrado." });
+
+        // Encriptar la contraseña y guardar
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ email, password: hashedPassword });
+        await newUser.save();
+        
+        res.status(201).json({ message: "Usuario creado", userId: newUser._id });
+    } catch (error) {
+        res.status(500).json({ error: "Error al registrar el usuario" });
+    }
+});
+
+// Iniciar sesión
+app.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Buscar al usuario
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        // Comparar contraseñas
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Contraseña incorrecta" });
+
+        res.status(200).json({ message: "Login exitoso", userId: user._id });
+    } catch (error) {
+        res.status(500).json({ error: "Error en el servidor al iniciar sesión" });
+    }
+});
 
 // ==========================================
 // 3. RUTAS DE LA APLICACIÓN (API DE MASCOTAS)
