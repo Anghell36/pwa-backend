@@ -37,6 +37,8 @@ const Pet = mongoose.model("Pet", petSchema);
 // ==========================================
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
+    username: { type: String, required: true },
+    fullName: { type: String, required: true },
     password: { type: String, required: true }
 });
 const User = mongoose.model("User", userSchema);
@@ -48,15 +50,16 @@ const User = mongoose.model("User", userSchema);
 // Registrar un nuevo usuario
 app.post("/register", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        // Recibimos los 4 datos de tu formulario
+        const { email, username, fullName, password } = req.body;
         
         // Verificar si ya existe
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ error: "El correo ya está registrado." });
 
-        // Encriptar la contraseña y guardar
+        // Encriptar la contraseña y guardar con los nuevos campos
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ email, password: hashedPassword });
+        const newUser = new User({ email, username, fullName, password: hashedPassword });
         await newUser.save();
         
         res.status(201).json({ message: "Usuario creado", userId: newUser._id });
