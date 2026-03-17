@@ -27,6 +27,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 const petSchema = new mongoose.Schema({
     name: String,
+    breed: String,
     color: String,
     genre: String,
     age: String,
