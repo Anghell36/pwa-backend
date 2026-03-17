@@ -2,9 +2,13 @@
   "name": "mypet-backend",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "start": "node api/server.js"
+  },
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "stripe": "^20.4.1"
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "stripe": "^14.5.0",
+    "mongoose": "^8.0.0"
   }
 }
